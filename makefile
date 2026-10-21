@@ -1,21 +1,23 @@
-synthesize: demo.bin
+YOSYS=yosys
+#VHDL_SYN_FILES=$(wildcard *.vhdl)
+VHDL_SYN_FILES=leds.vhdl spin2.vhdl
+TOPLEVEL=leds
+GHDLSYNTH=ghdl
+PLATFORM=ice40
+GHDL_FLAGS="--std=08"
+include ghdlsynth.mk
 
-test.v: test.vhd
-	vhd2vl test.vhd test.v
+synthesize: leds.bin
 
-clk_devider.v: clk_devider.vhd
-	vhd2vl clk_devider.vhd clk_devider.v
+work-obj08.cf: $(SOURCES)
+	ghdl -a --std=08 *.vhdl
 
-counter.v: counter.vhd
-	vhd2vl counter.vhd counter.v
+.PHONY: work-obj08.cf
 
-demo.blif: test.v clk_devider.v counter.v
-	yosys -q -p "synth_ice40 -blif demo.blif" test.v clk_devider.v counter.v
+leds.asc: leds.json
+	nextpnr-ice40 --hx8k --package ct256 --json $< --pcf pinmap.pcf --asc $@
 
-demo.asc: demo.blif demo.pcf
-	arachne-pnr -d 1k -P vq100 -p demo.pcf $< -o $@
-
-demo.bin: demo.asc
+leds.bin: leds.asc
 	icepack $< $@
 
 run: demo.bin
@@ -23,6 +25,6 @@ run: demo.bin
 	ssh pi@192.168.0.230 "/home/pi/ice40/upload.sh"
 
 clean:
-	rm *.{v,asc,bin,blif}
+	rm -f *.{v,asc,bin,blif,json,cf,o}
 
 .PHONY: synthesize
