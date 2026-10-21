@@ -1,23 +1,23 @@
 YOSYS=yosys
 #VHDL_SYN_FILES=$(wildcard *.vhdl)
-VHDL_SYN_FILES=leds.vhdl spin2.vhdl
-TOPLEVEL=leds
+VHDL_SYN_FILES=clock.vhdl
+TOPLEVEL=clock
 GHDLSYNTH=ghdl
 PLATFORM=ice40
 GHDL_FLAGS="--std=08"
 include ghdlsynth.mk
 
-synthesize: leds.bin
+synthesize: clock.bin
 
 work-obj08.cf: $(SOURCES)
 	ghdl -a --std=08 *.vhdl
 
 .PHONY: work-obj08.cf
 
-leds.asc: leds.json
+clock.asc: clock.json
 	nextpnr-ice40 --hx8k --package ct256 --json $< --pcf pinmap.pcf --asc $@
 
-leds.bin: leds.asc
+clock.bin: clock.asc
 	icepack $< $@
 
 run: demo.bin
